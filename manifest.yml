@@ -1,0 +1,5 @@
+---
+applications:
+- name: demoapp
+  services:
+  - postgres-service

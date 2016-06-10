@@ -1,0 +1,73 @@
+<html>
+    <head>
+        <title>Flask app</title>
+
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+    <script src="//code.jquery.com/jquery-1.11.3.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/vue/1.0.24/vue.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue-resource/0.7.2/vue-resource.js"></script>
+<style>
+    .done_true label { text-decoration: line-through; }
+    body {width: 900px; margin: 0 auto; }
+</style>
+    </head>
+{% raw %}
+    <body>
+<div class="container">
+  <div class="jumbotron">
+        <div id="todoapp">
+          <ul  class="list-group">
+              <li><input v-model="newTodo" class="form-control" v-on:keyup.enter="addTodo" /></li>
+              <br />
+              <li v-for="todo in todolist" class="list-group-item" >
+              <div class="checkbox done_{{todo.done}}" id="todo_{{todo.index}}"><label>
+                  <input type="checkbox" checked={{todo.done}} v-on:click="removeTodo(todo.index)" />{{ todo.text }}
+              </label></div>
+              </li>
+          </ul>
+        </div>
+        <script>
+            //Vue.http.headers.common['X-CSRF-TOKEN'] = document.querySelector('#token').getAttribute('content');
+            //console.log(Vue.http.headers);
+            new Vue({
+              el: '#todoapp',
+              data: {
+                newTodo: '',
+                todolist: []
+               },
+              ready: function(){
+                this.$http({url: '/api/list', method: 'GET'}).then(function (response) {
+                  // success callback
+                  this.todolist = response.data;
+                }, function (response) {}); 
+              },
+              methods: {
+                addTodo: function() {
+                  text = this.newTodo.trim();
+                  if (text) {
+                    this.$http({url: '/api/append', data: {value: text}, method: 'POST'}).then(
+                        function(response){
+                            item = { index: response.index, text: text, done: false };
+                            this.todolist.push(item);
+                            this.newTodo = '';
+                        },
+                        function(response){ /* Bad stuff */ }
+                    );
+                  }
+                },
+                removeTodo: function (index) {
+                  //this.todolist.splice(index, 1)
+                  // make_ajax_call
+                this.$http({url: '/api/update', data: {value: index}, method: 'POST'}).then(
+                    function (response) {
+                      // success callback
+                        $("#todo_"+index).toggleClass("done_true");
+                    }, function (response) {}); 
+                }
+              }
+            })
+        </script>
+</div></div>
+    </body>
+{% endraw %}
+</html>
